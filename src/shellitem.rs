@@ -60,6 +60,10 @@ impl ShellItem {
             }
         )
     }
+
+    pub fn get_size(&self) -> u16 {
+        self.size
+    }
 }
 
 // Raw Content will be used for unhandled shell item data
