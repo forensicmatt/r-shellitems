@@ -6,13 +6,13 @@ use std::io::Cursor;
 use std::io::Read;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Serialize, Clone, Debug)]
 pub enum ShellContent {
     Raw(RawContent),
     None
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Clone, Debug)]
 pub struct ShellData {
     pub class_type: u8,
     pub content: ShellContent
@@ -36,7 +36,7 @@ impl ShellData {
     }
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Clone, Debug)]
 pub struct ShellItem {
     pub size: u16,
     pub data: Option<ShellData>
