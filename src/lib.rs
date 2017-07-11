@@ -3,4 +3,5 @@ extern crate serde;
 extern crate byteorder;
 pub mod errors;
 pub mod shellitem;
+pub mod shelllist;
 pub mod utils;
