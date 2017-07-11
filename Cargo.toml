@@ -1,7 +1,7 @@
 [package]
 name = "r-shellitems"
-version = "0.0.1"
-authors = ["Matthew Seyer <https://github.com/forensicmatt/r-winstructs>"]
+version = "0.0.2"
+authors = ["Matthew Seyer <https://github.com/forensicmatt/r-shellitems>"]
 
 [lib]
 name = "rshellitems"
