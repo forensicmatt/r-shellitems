@@ -11,3 +11,13 @@ serde = "0.9"
 serde_derive = "0.9"
 serde_json = "0.9"
 byteorder = "1"
+bitflags = "0.9.1"
+
+[dependencies.chrono]
+version = "*"
+features = ["serde", "rustc-serialize"]
+
+[dependencies.r-winstructs]
+version = "*"
+branch = "master"
+git = "https://github.com/forensicmatt/r-winstructs"
