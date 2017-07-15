@@ -4,6 +4,8 @@ use errors::{ShellItemError};
 use std::io::Read;
 use std::fmt;
 use serde::{ser};
+use shellitem::{ClassType};
+use utils;
 
 pub static mut FLAGS_AS_INT: bool = false;
 
@@ -44,14 +46,47 @@ impl ser::Serialize for FileAttributeFlags {
     }
 }
 
+bitflags! {
+    pub struct FileEntryItemFlags: u8 {
+        const DIRECTORY            = 0x01;
+        const FILE                 = 0x02;
+        const IS_UNICODE           = 0x04;
+        const UNKOWN1              = 0x08;
+    }
+}
+impl fmt::Display for FileEntryItemFlags {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"{}",self.bits())
+    }
+}
+impl ser::Serialize for FileEntryItemFlags {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: ser::Serializer
+    {
+        if unsafe{FLAGS_AS_INT} {
+            serializer.serialize_u8(self.bits())
+        } else {
+            serializer.serialize_str(&format!("{:?}", self))
+        }
+    }
+}
+
+
+//https://github.com/libyal/libfwsi/blob/master/documentation/Windows%20Shell%20Item%20format.asciidoc#34-file-entry-shell-item
 #[derive(Serialize, Clone, Debug)]
 pub struct FileEntryShellItem {
+    pub sub_flags: FileEntryItemFlags,
     pub file_size: u32,
     pub last_modification: DosDateTime,
-    pub flags: FileAttributeFlags
+    pub flags: FileAttributeFlags,
+    pub name: String,
+
 }
 impl FileEntryShellItem {
-    pub fn new<R: Read>(mut reader: R) -> Result<FileEntryShellItem,ShellItemError> {
+    pub fn new<R: Read>(mut reader: R, class_type: &ClassType) -> Result<FileEntryShellItem,ShellItemError> {
+        let sub_flags = FileEntryItemFlags::from_bits_truncate(
+            class_type.get_minor()
+        );
         let file_size = reader.read_u32::<LittleEndian>()?;
         let last_modification = DosDateTime(
             reader.read_u32::<LittleEndian>()?
@@ -60,11 +95,32 @@ impl FileEntryShellItem {
             reader.read_u16::<LittleEndian>()?
         );
 
+        // Get name
+        let mut name = String::new();
+        if sub_flags.contains(IS_UNICODE) {
+            // unicode
+            name = utils::read_string_u16_till_null(
+                &mut reader
+            )?;
+        } else {
+            name = utils::read_string_u8_till_null(
+                &mut reader
+            )?;
+            if name.len() % 2 != 0 {
+                // throw away align byte
+                reader.read_u8()?;
+            }
+        }
+
+        // Get extention blocks
+
         Ok(
             FileEntryShellItem {
+                sub_flags: sub_flags,
                 file_size: file_size,
                 last_modification: last_modification,
-                flags: flags
+                flags: flags,
+                name: name
             }
         )
     }
@@ -83,6 +139,9 @@ fn test_file_entry_item() {
         0x00,0x78,0x00,0x6C,0x00,0x73,0x00,0x78,0x00,0x00,0x00,0x1C,0x00
     ];
 
-    let file_entry = FileEntryShellItem::new(buffer).unwrap();
+    let file_entry = FileEntryShellItem::new(
+        buffer,
+        &ClassType::new(0x32)
+    ).unwrap();
     assert_eq!(file_entry.file_size,17496576);
 }
