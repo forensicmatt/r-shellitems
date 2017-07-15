@@ -12,6 +12,7 @@ serde_derive = "0.9"
 serde_json = "0.9"
 byteorder = "1"
 bitflags = "0.9.1"
+encoding = "0.2"
 
 [dependencies.chrono]
 version = "*"

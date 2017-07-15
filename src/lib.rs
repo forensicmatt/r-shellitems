@@ -4,6 +4,7 @@ extern crate rwinstructs;
 extern crate chrono;
 extern crate serde;
 extern crate byteorder;
+extern crate encoding;
 pub mod errors;
 pub mod shellitem;
 pub mod shelllist;
