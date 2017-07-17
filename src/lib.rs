@@ -9,4 +9,5 @@ pub mod errors;
 pub mod shellitem;
 pub mod shelllist;
 pub mod file_entry_shell;
+pub mod extension_blocks;
 pub mod utils;
