@@ -69,11 +69,6 @@ impl ShellData {
         let mut buffer = Vec::new();
         reader.read_to_end(&mut buffer)?;
 
-        println!(
-            "ShellData Buffer: {}",
-            utils::to_hex_string(&buffer)
-        );
-
         let mut content = ShellContent::None;
 
         match class_type.get_type() {
