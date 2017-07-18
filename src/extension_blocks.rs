@@ -118,6 +118,7 @@ impl ser::Serialize for ExtensionSignature {
 }
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(untagged)]
 pub enum ExtensionContent {
     FileEntry(Beef0004),
     Raw(RawExtensionContent),
@@ -153,6 +154,7 @@ impl ExtensionHeader {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ExtensionBlock {
+    #[serde(skip_serializing)]
     size: u16,
     header: Option<ExtensionHeader>,
     content: Option<ExtensionContent>

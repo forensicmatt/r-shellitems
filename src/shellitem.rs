@@ -8,6 +8,7 @@ use std::io::Read;
 use std::fmt;
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(untagged)]
 pub enum ShellContent {
     Raw(RawContent),
     FileEntry(FileEntryShellItem),
@@ -99,6 +100,7 @@ impl ShellData {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ShellItem {
+    #[serde(skip_serializing)]
     pub size: u16,
     pub data: Option<ShellData>
 }
