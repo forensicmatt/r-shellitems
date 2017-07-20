@@ -2,6 +2,7 @@ use byteorder::{ReadBytesExt, LittleEndian};
 use rwinstructs::timestamp::{DosDateTime};
 use errors::{ShellItemError};
 use std::io::Read;
+use std::io::{Seek,SeekFrom};
 use std::fmt;
 use serde::{ser};
 use shellitem::{ClassType};
@@ -76,6 +77,8 @@ impl ser::Serialize for FileEntryItemFlags {
 //https://github.com/libyal/libfwsi/blob/master/documentation/Windows%20Shell%20Item%20format.asciidoc#34-file-entry-shell-item
 #[derive(Serialize, Clone, Debug)]
 pub struct FileEntryShellItem {
+    #[serde(skip_serializing)]
+    _offset: u64,
     pub sub_flags: FileEntryItemFlags,
     pub file_size: u32,
     pub last_modification: DosDateTime,
@@ -84,7 +87,8 @@ pub struct FileEntryShellItem {
     pub extention_block: ExtensionBlock
 }
 impl FileEntryShellItem {
-    pub fn new<R: Read>(mut reader: R, class_type: &ClassType) -> Result<FileEntryShellItem,ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs, class_type: &ClassType) -> Result<FileEntryShellItem,ShellItemError> {
+        let _offset = reader.seek(SeekFrom::Current(0))?;
         let sub_flags = FileEntryItemFlags::from_bits_truncate(
             class_type.get_minor()
         );
@@ -121,6 +125,7 @@ impl FileEntryShellItem {
 
         Ok(
             FileEntryShellItem {
+                _offset: _offset,
                 sub_flags: sub_flags,
                 file_size: file_size,
                 last_modification: last_modification,
@@ -134,6 +139,7 @@ impl FileEntryShellItem {
 
 #[test]
 fn test_file_entry_item() {
+    use std::io::Cursor;
     let buffer: &[u8] = &[
         0xFA,0x0A,0x01,0x00,0x68,0x40,0x6E,0xB1,0x20,0x00,0x43,0x4F,0x50,0x59,0x4F,0x46,
         0x7E,0x31,0x2E,0x58,0x4C,0x53,0x00,0x00,0x64,0x00,0x03,0x00,0x04,0x00,0xEF,0xBE,
@@ -146,7 +152,7 @@ fn test_file_entry_item() {
     ];
 
     let file_entry = FileEntryShellItem::new(
-        buffer,
+        Cursor::new(buffer),
         &ClassType::new(0x32)
     ).unwrap();
     assert_eq!(file_entry.file_size,68346);

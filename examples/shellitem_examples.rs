@@ -1,5 +1,6 @@
 extern crate rshellitems;
 extern crate serde_json;
+use std::io::Cursor;
 use rshellitems::shellitem::{ShellItem};
 
 fn example_0x1f_001(){
@@ -8,7 +9,7 @@ fn example_0x1f_001(){
         0x36,0x1B,0x11,0x03
     ];
 
-    let shell_item = ShellItem::new(buffer).unwrap();
+    let shell_item = ShellItem::new(Cursor::new(buffer)).unwrap();
     let shell_item_json = serde_json::to_string(&shell_item).unwrap();
 
     println!("{:#?}",shell_item);
@@ -25,7 +26,7 @@ fn example_0x31_001(){
         0x00,0x00,0x18,0x00
     ];
 
-    let shell_item = ShellItem::new(buffer).unwrap();
+    let shell_item = ShellItem::new(Cursor::new(buffer)).unwrap();
     let shell_item_json = serde_json::to_string(&shell_item).unwrap();
 
     println!("{:#?}",shell_item);
@@ -44,7 +45,7 @@ fn example_0x32_001(){
         0x68,0x00,0x2E,0x00,0x78,0x00,0x6C,0x00,0x73,0x00,0x78,0x00,0x00,0x00,0x1C,0x00
     ];
 
-    let shell_item = ShellItem::new(buffer).unwrap();
+    let shell_item = ShellItem::new(Cursor::new(buffer)).unwrap();
     let shell_item_json = serde_json::to_string(&shell_item).unwrap();
 
     println!("{:#?}",shell_item);

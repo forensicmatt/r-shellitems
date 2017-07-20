@@ -5,6 +5,7 @@ use file_entry_shell::{FileEntryShellItem};
 use utils;
 use std::io::Cursor;
 use std::io::Read;
+use std::io::{Seek,SeekFrom};
 use std::fmt;
 
 #[derive(Serialize, Clone, Debug)]
@@ -58,12 +59,15 @@ impl ser::Serialize for ClassType {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ShellData {
+    #[serde(skip_serializing)]
+    _offset: u64,
     pub class_type: ClassType,
     pub unknown: u8,
     pub content: ShellContent
 }
 impl ShellData {
-    pub fn new<R: Read>(mut reader: R) -> Result<ShellData,ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs) -> Result<ShellData,ShellItemError> {
+        let _offset = reader.seek(SeekFrom::Current(0))?;
         let class_type = ClassType(reader.read_u8()?);
         let unknown = reader.read_u8()?;
 
@@ -90,6 +94,7 @@ impl ShellData {
 
         Ok(
             ShellData {
+                _offset: _offset,
                 class_type: class_type,
                 unknown: unknown,
                 content: content
@@ -101,11 +106,14 @@ impl ShellData {
 #[derive(Serialize, Clone, Debug)]
 pub struct ShellItem {
     #[serde(skip_serializing)]
+    _offset: u64,
+    #[serde(skip_serializing)]
     pub size: u16,
     pub data: Option<ShellData>
 }
 impl ShellItem {
-    pub fn new<R: Read>(mut reader: R) -> Result<ShellItem,ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs) -> Result<ShellItem,ShellItemError> {
+        let _offset = reader.seek(SeekFrom::Current(0))?;
         let size = reader.read_u16::<LittleEndian>()?;
 
         let mut data: Option<ShellData> = None;
@@ -120,6 +128,7 @@ impl ShellItem {
 
         Ok(
             ShellItem {
+                _offset: _offset,
                 size: size,
                 data: data
             }

@@ -1,6 +1,7 @@
 use shellitem::{ShellItem};
 use errors::{ShellItemError};
 use std::io::Read;
+use std::io::Seek;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ShellList(
@@ -8,7 +9,7 @@ pub struct ShellList(
 );
 
 impl ShellList {
-    pub fn new<R: Read>(mut reader: R) -> Result<ShellList, ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs) -> Result<ShellList, ShellItemError> {
         let mut shell_items: Vec<ShellItem> = Vec::new();
         loop {
             let shell_item = ShellItem::new(&mut reader)?;

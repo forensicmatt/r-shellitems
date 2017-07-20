@@ -177,16 +177,20 @@ pub enum ExtensionContent {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ExtensionHeader {
+    #[serde(skip_serializing)]
+    _offset: u64,
     version: u16,
     signature: ExtensionSignature
 }
 impl ExtensionHeader {
-    pub fn new<R: Read>(mut reader: R) -> Result<ExtensionHeader, ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs) -> Result<ExtensionHeader, ShellItemError> {
+        let _offset = reader.seek(SeekFrom::Current(0))?;
         let version = reader.read_u16::<LittleEndian>()?;
         let signature = ExtensionSignature(reader.read_u32::<LittleEndian>()?);
 
         Ok(
             ExtensionHeader {
+                _offset: _offset,
                 version: version,
                 signature: signature
             }
@@ -205,12 +209,15 @@ impl ExtensionHeader {
 #[derive(Serialize, Clone, Debug)]
 pub struct ExtensionBlock {
     #[serde(skip_serializing)]
+    _offset: u64,
+    #[serde(skip_serializing)]
     size: u16,
     header: Option<ExtensionHeader>,
     content: Option<ExtensionContent>
 }
 impl ExtensionBlock {
-    pub fn new<R: Read>(mut reader: R) -> Result<ExtensionBlock, ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs) -> Result<ExtensionBlock, ShellItemError> {
+        let _offset = reader.seek(SeekFrom::Current(0))?;
         let size = reader.read_u16::<LittleEndian>()?;
 
         let mut header_opt = None;
@@ -224,22 +231,25 @@ impl ExtensionBlock {
 
         match header_opt {
             Some(ref header) => {
-                // subtarct size of 8 for header
-                let mut buffer = vec![0; (size - 8) as usize];
-                reader.read_exact(&mut buffer)?;
+                // // subtarct size of 8 for header
+                // let mut buffer = vec![0; (size - 8) as usize];
+                // reader.read_exact(&mut buffer)?;
 
                 match header.get_signature_u32() {
                     0xBEEF0004 => {
                         content = Some(
                             ExtensionContent::FileEntry(
                                 Beef0004::new(
-                                    Cursor::new(buffer),
+                                    // Cursor::new(buffer),
+                                    &mut reader,
                                     header.get_version_u32()
                                 )?
                             )
                         );
                     }
                     _ => {
+                        let mut buffer = vec![0; (size - 8) as usize];
+                        reader.read_exact(&mut buffer)?;
                         content = Some(
                             ExtensionContent::Raw(
                                 RawExtensionContent(buffer)
@@ -253,6 +263,7 @@ impl ExtensionBlock {
 
         Ok(
             ExtensionBlock {
+                _offset: _offset,
                 size: size,
                 header: header_opt,
                 content: content
@@ -271,7 +282,7 @@ pub struct ExtensionList(
 );
 
 impl ExtensionList {
-    pub fn new<R: Read>(mut reader: R) -> Result<ExtensionList, ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs) -> Result<ExtensionList, ShellItemError> {
         let mut extension_blocks: Vec<ExtensionBlock> = Vec::new();
         loop {
             let extension_block = ExtensionBlock::new(
