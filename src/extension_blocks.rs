@@ -2,61 +2,111 @@ use byteorder::{ReadBytesExt, LittleEndian};
 use serde::{ser};
 use errors::{ShellItemError};
 use file_entry_shell::{FileEntryShellItem};
-use rwinstructs::timestamp::{DosDateTime};
+use rwinstructs::timestamp::DosDateTime;
+use rwinstructs::reference::MftReference;
 use utils;
 use std::io::Cursor;
 use std::io::Read;
+use std::io::{Seek,SeekFrom};
 use std::fmt;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Beef0004 {
+    #[serde(skip_serializing)]
+    _offset: u64,
     creation: DosDateTime,
     last_access: DosDateTime,
     identifier: u16,
+    file_reference: Option<MftReference>,
     long_string_size: Option<u16>,
     name: Option<String>,
     long_name: Option<String>,
+    localized_name: Option<String>,
     version_offset: Option<u16>
 }
 impl Beef0004 {
-    pub fn new<R: Read>(mut reader: R, extention_version: u16) -> Result<Beef0004, ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs, extention_version: u16) -> Result<Beef0004, ShellItemError> {
+        let _offset = reader.seek(SeekFrom::Current(0))?;
         let creation = DosDateTime(reader.read_u32::<LittleEndian>()?);
         let last_access = DosDateTime(reader.read_u32::<LittleEndian>()?);
         let identifier = reader.read_u16::<LittleEndian>()?;
+        let mut file_reference = None;
         let mut long_string_size = None;
         let mut name = None;
         let mut long_name = None;
+        let mut localized_name = None;
         let mut version_offset = None;
 
-        match extention_version {
-            3 => {
-                long_string_size = Some(reader.read_u16::<LittleEndian>()?);
-                name = Some(
-                    utils::read_string_u16_till_null(&mut reader)?
-                );
+        if extention_version >= 7 {
+            let unknown1 = reader.read_u16::<LittleEndian>()?;
+            file_reference = Some(
+                MftReference(reader.read_u64::<LittleEndian>()?)
+            );
+            let unknown2 = reader.read_u64::<LittleEndian>()?;
+        }
 
-                // Check for long name
-                if long_string_size.is_some() {
-                    if long_string_size.unwrap() > 0 {
-                        long_name = Some(
-                            utils::read_string_u16_till_null(&mut reader)?
-                        )
-                    }
+        if extention_version >= 3 {
+            long_string_size = Some(reader.read_u16::<LittleEndian>()?);
+        }
+
+        if extention_version >= 9 {
+            let unknown = reader.read_u32::<LittleEndian>()?;
+        }
+        if extention_version >= 8 {
+            let unknown = reader.read_u32::<LittleEndian>()?;
+        }
+
+        if extention_version >= 3 {
+            println!("name offset: {}",reader.seek(SeekFrom::Current(0))?);
+            name = Some(
+                utils::read_string_u16_till_null(&mut reader)?
+            )
+        }
+        if extention_version >= 3 {
+            if long_string_size.is_some() {
+                if long_string_size.unwrap() > 0 {
+                    long_name = Some(
+                        utils::read_string_u16_till_null(&mut reader)?
+                    )
                 }
+            }
+        }
+        if extention_version >= 3 && long_string_size.unwrap() > 0 {
+            localized_name = Some(
+                utils::read_string_u8_till_null(&mut reader)?
+            )
+        }
+        if extention_version >= 7 {
+            if long_string_size.unwrap() > 0 {
+                localized_name = Some(
+                    utils::read_string_u16_till_null(&mut reader)?
+                )
+            }
+        } else if extention_version >= 3 {
+            if long_string_size.unwrap() > 0 {
+                localized_name = Some(
+                    utils::read_string_u8_till_null(&mut reader)?
+                )
+            }
+        }
 
-                version_offset = Some(reader.read_u16::<LittleEndian>()?);
-            },
-            _ => {}
+        if extention_version >= 3 {
+            version_offset = Some(
+                reader.read_u16::<LittleEndian>()?
+            );
         }
 
         Ok(
             Beef0004 {
+                _offset: _offset,
                 creation: creation,
                 last_access: last_access,
                 identifier: identifier,
+                file_reference: file_reference,
                 long_string_size: long_string_size,
                 name: name,
                 long_name: long_name,
+                localized_name: localized_name,
                 version_offset: version_offset
             }
         )
