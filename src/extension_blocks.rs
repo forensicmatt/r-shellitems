@@ -17,11 +17,17 @@ pub struct Beef0004 {
     creation: DosDateTime,
     last_access: DosDateTime,
     identifier: u16,
+    #[serde(skip_serializing_if = "Option::is_none")]
     file_reference: Option<MftReference>,
+    #[serde(skip_serializing)]
     long_string_size: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     long_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     localized_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     version_offset: Option<u16>
 }
 impl Beef0004 {
