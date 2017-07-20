@@ -57,7 +57,6 @@ impl Beef0004 {
         }
 
         if extention_version >= 3 {
-            println!("name offset: {}",reader.seek(SeekFrom::Current(0))?);
             name = Some(
                 utils::read_string_u16_till_null(&mut reader)?
             )
