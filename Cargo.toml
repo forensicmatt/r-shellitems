@@ -1,6 +1,6 @@
 [package]
 name = "r-shellitems"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Matthew Seyer <https://github.com/forensicmatt/r-shellitems>"]
 
 [lib]
