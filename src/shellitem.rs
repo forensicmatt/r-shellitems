@@ -66,13 +66,10 @@ pub struct ShellData {
     pub content: ShellContent
 }
 impl ShellData {
-    pub fn new<Rs: Read+Seek>(mut reader: Rs) -> Result<ShellData,ShellItemError> {
+    pub fn new<Rs: Read+Seek>(mut reader: Rs, size: u16) -> Result<ShellData,ShellItemError> {
         let _offset = reader.seek(SeekFrom::Current(0))?;
         let class_type = ClassType(reader.read_u8()?);
         let unknown = reader.read_u8()?;
-
-        let mut buffer = Vec::new();
-        reader.read_to_end(&mut buffer)?;
 
         let mut content = ShellContent::None;
 
@@ -80,12 +77,17 @@ impl ShellData {
             0x30...0x3F => {
                 content = ShellContent::FileEntry(
                     FileEntryShellItem::new(
-                        Cursor::new(buffer),
+                        &mut reader,
                         &class_type
                     )?
                 );
             },
             _ => {
+                // subtract 4 from size to account for size(2), class_type(1), and unknown(1)
+                let buff_size = size - 4;
+                let mut buffer = vec![0; buff_size as usize];
+                reader.read_exact(&mut buffer)?;
+
                 content = ShellContent::Raw(
                     RawContent(buffer)
                 );
@@ -118,11 +120,11 @@ impl ShellItem {
 
         let mut data: Option<ShellData> = None;
         if size > 0 {
-            // subtract 2 from size to account for size already read
-            let mut buffer = vec![0; (size - 2) as usize];
-            reader.read_exact(buffer.as_mut_slice())?;
             data = Some(
-                ShellData::new(Cursor::new(buffer))?
+                ShellData::new(
+                    &mut reader,
+                    size
+                )?
             );
         }
 
