@@ -1,4 +1,5 @@
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate trace_error;
 #[macro_use] extern crate bitflags;
 extern crate rwinstructs;
 extern crate chrono;

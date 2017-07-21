@@ -1,6 +1,6 @@
 [package]
 name = "r-shellitems"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Matthew Seyer <https://github.com/forensicmatt/r-shellitems>"]
 
 [lib]
@@ -13,6 +13,7 @@ serde_json = "0.9"
 byteorder = "1"
 bitflags = "0.9.1"
 encoding = "0.2"
+trace-error = "*"
 
 [dependencies.chrono]
 version = "*"

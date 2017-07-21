@@ -16,8 +16,7 @@ pub struct ShellItemError {
     pub message: String,
     // The type of error
     pub kind: ErrorKind,
-    // Any additional information passed along, such as the argument name that caused the error
-    pub info: Option<Vec<String>>,
+    pub trace: String
 }
 impl ShellItemError {
     #[allow(dead_code)]
@@ -25,7 +24,7 @@ impl ShellItemError {
         ShellItemError {
             message: format!("{}",err),
             kind: ErrorKind::Utf16Error,
-            info: Some(vec![]),
+            trace: backtrace!()
         }
     }
 }
@@ -34,7 +33,7 @@ impl From<io::Error> for ShellItemError {
         ShellItemError {
             message: format!("{}",err),
             kind: ErrorKind::IoError,
-            info: None,
+            trace: backtrace!()
         }
     }
 }
@@ -43,10 +42,16 @@ impl From<FromUtf8Error> for ShellItemError {
         ShellItemError {
             message: format!("{}",err),
             kind: ErrorKind::Utf16Error,
-            info: None,
+            trace: backtrace!()
         }
     }
 }
 impl Display for ShellItemError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { writeln!(f, "{}", self.message) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(
+            f,
+            "message: {}\nkind: {:?}\n{}",
+            self.message, self.kind, self.trace
+        )
+    }
 }
