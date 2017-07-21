@@ -13,6 +13,7 @@ impl ShellList {
         let mut shell_items: Vec<ShellItem> = Vec::new();
         loop {
             let shell_item = ShellItem::new(&mut reader)?;
+            debug!("{:?}",shell_item);
             let size = shell_item.get_size();
 
             if size == 0 {
