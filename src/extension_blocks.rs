@@ -43,62 +43,74 @@ impl Beef0004 {
         let mut localized_name = None;
         let mut version_offset = None;
 
-        if extention_version >= 7 {
-            let unknown1 = reader.read_u16::<LittleEndian>()?;
-            file_reference = Some(
-                MftReference(reader.read_u64::<LittleEndian>()?)
-            );
-            let unknown2 = reader.read_u64::<LittleEndian>()?;
-        }
-
-        if extention_version >= 3 {
-            long_string_size = Some(reader.read_u16::<LittleEndian>()?);
-        }
-
-        if extention_version >= 9 {
-            let unknown = reader.read_u32::<LittleEndian>()?;
-        }
-        if extention_version >= 8 {
-            let unknown = reader.read_u32::<LittleEndian>()?;
-        }
-
-        if extention_version >= 3 {
-            name = Some(
-                utils::read_string_u16_till_null(&mut reader)?
-            )
-        }
-        if extention_version >= 3 {
-            if long_string_size.is_some() {
+        match extention_version {
+            3 => {
+                long_string_size = Some(reader.read_u16::<LittleEndian>()?);
+                name = Some(
+                    utils::read_string_u16_till_null(&mut reader)?
+                );
                 if long_string_size.unwrap() > 0 {
                     long_name = Some(
                         utils::read_string_u16_till_null(&mut reader)?
-                    )
+                    );
                 }
-            }
-        }
-        if extention_version >= 3 && long_string_size.unwrap() > 0 {
-            localized_name = Some(
-                utils::read_string_u8_till_null(&mut reader)?
-            )
-        }
-        if extention_version >= 7 {
-            if long_string_size.unwrap() > 0 {
-                localized_name = Some(
-                    utils::read_string_u16_till_null(&mut reader)?
-                )
-            }
-        } else if extention_version >= 3 {
-            if long_string_size.unwrap() > 0 {
-                localized_name = Some(
-                    utils::read_string_u8_till_null(&mut reader)?
-                )
-            }
-        }
 
-        if extention_version >= 3 {
-            version_offset = Some(
-                reader.read_u16::<LittleEndian>()?
-            );
+                version_offset = Some(
+                    reader.read_u16::<LittleEndian>()?
+                );
+            },
+            8 => {
+                let unknown1 = reader.read_u16::<LittleEndian>()?;
+                file_reference = Some(
+                    MftReference(reader.read_u64::<LittleEndian>()?)
+                );
+                let unknown2 = reader.read_u64::<LittleEndian>()?;
+                long_string_size = Some(reader.read_u16::<LittleEndian>()?);
+                let unknown3 = reader.read_u32::<LittleEndian>()?;
+
+                name = Some(
+                    utils::read_string_u16_till_null(&mut reader)?
+                );
+
+                if long_string_size.unwrap() > 0 {
+                    long_name = Some(
+                        utils::read_string_u16_till_null(&mut reader)?
+                    );
+                }
+
+                version_offset = Some(
+                    reader.read_u16::<LittleEndian>()?
+                );
+            },
+            9 => {
+                let unknown1 = reader.read_u16::<LittleEndian>()?;
+                file_reference = Some(
+                    MftReference(reader.read_u64::<LittleEndian>()?)
+                );
+                let unknown2 = reader.read_u64::<LittleEndian>()?;
+                long_string_size = Some(reader.read_u16::<LittleEndian>()?);
+                let unknown3 = reader.read_u32::<LittleEndian>()?;
+                let unknown4 = reader.read_u32::<LittleEndian>()?;
+
+                name = Some(
+                    utils::read_string_u16_till_null(&mut reader)?
+                );
+
+                if long_string_size.unwrap() > 0 {
+                    long_name = Some(
+                        utils::read_string_u16_till_null(&mut reader)?
+                    );
+                }
+
+                version_offset = Some(
+                    reader.read_u16::<LittleEndian>()?
+                );
+            },
+            _ => {
+                panic!(
+                    format!("Unhandled extention_version {} for Beef0004",extention_version)
+                );
+            }
         }
 
         Ok(
