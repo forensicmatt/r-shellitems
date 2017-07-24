@@ -1,6 +1,6 @@
 [package]
 name = "r-shellitems"
-version = "0.0.7"
+version = "0.0.8"
 authors = ["Matthew Seyer <https://github.com/forensicmatt/r-shellitems>"]
 
 [lib]
@@ -22,6 +22,6 @@ version = "*"
 features = ["serde", "rustc-serialize"]
 
 [dependencies.r-winstructs]
-version = "0.1.4"
+version = "0.1.6"
 branch = "master"
 git = "https://github.com/forensicmatt/r-winstructs"
