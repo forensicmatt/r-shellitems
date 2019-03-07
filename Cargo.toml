@@ -22,6 +22,6 @@ version = "*"
 features = ["serde", "rustc-serialize"]
 
 [dependencies.r-winstructs]
-version = "0.1.6"
+version = ">0.3.0"
 branch = "master"
 git = "https://github.com/forensicmatt/r-winstructs"
