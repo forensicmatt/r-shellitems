@@ -146,7 +146,7 @@ fn example_001(){
 }
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
     example_001();
     example_002();
     example_003();

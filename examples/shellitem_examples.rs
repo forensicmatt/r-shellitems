@@ -99,7 +99,7 @@ fn example_debug(){
 }
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
     example_0x1f_001();
     example_0x31_001();
     example_0x32_001();
