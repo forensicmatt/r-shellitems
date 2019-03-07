@@ -3,7 +3,6 @@ use serde::{ser};
 use errors::{ShellItemError};
 use file_entry_shell::{FileEntryShellItem};
 use utils;
-use std::io::Cursor;
 use std::io::Read;
 use std::io::{Seek,SeekFrom};
 use std::fmt;

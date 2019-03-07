@@ -1,7 +1,6 @@
 use byteorder::{ReadBytesExt, LittleEndian};
 use serde::{ser};
 use errors::{ShellItemError};
-use file_entry_shell::{FileEntryShellItem};
 use rwinstructs::timestamp::DosDateTime;
 use rwinstructs::reference::MftReference;
 use utils;
@@ -60,13 +59,13 @@ impl Beef0004 {
                 );
             },
             8 => {
-                let unknown1 = reader.read_u16::<LittleEndian>()?;
+                let _unknown1 = reader.read_u16::<LittleEndian>()?;
                 file_reference = Some(
                     MftReference(reader.read_u64::<LittleEndian>()?)
                 );
-                let unknown2 = reader.read_u64::<LittleEndian>()?;
+                let _unknown2 = reader.read_u64::<LittleEndian>()?;
                 long_string_size = Some(reader.read_u16::<LittleEndian>()?);
-                let unknown3 = reader.read_u32::<LittleEndian>()?;
+                let _unknown3 = reader.read_u32::<LittleEndian>()?;
 
                 name = Some(
                     utils::read_string_u16_till_null(&mut reader)?
@@ -83,14 +82,14 @@ impl Beef0004 {
                 );
             },
             9 => {
-                let unknown1 = reader.read_u16::<LittleEndian>()?;
+                let _unknown1 = reader.read_u16::<LittleEndian>()?;
                 file_reference = Some(
                     MftReference(reader.read_u64::<LittleEndian>()?)
                 );
-                let unknown2 = reader.read_u64::<LittleEndian>()?;
+                let _unknown2 = reader.read_u64::<LittleEndian>()?;
                 long_string_size = Some(reader.read_u16::<LittleEndian>()?);
-                let unknown3 = reader.read_u32::<LittleEndian>()?;
-                let unknown4 = reader.read_u32::<LittleEndian>()?;
+                let _unknown3 = reader.read_u32::<LittleEndian>()?;
+                let _unknown4 = reader.read_u32::<LittleEndian>()?;
 
                 name = Some(
                     utils::read_string_u16_till_null(&mut reader)?
